@@ -1,0 +1,97 @@
+Configurar un switch vlan y enlace troncal
+4 switch
+3 computadoras por switch y 1 que es el que conecta los 3 switch
+3 direcciones diferentes 
+	1: 192.168.10.0/24
+	2: 192.168.20.0/24
+	3: 192.168.30.0/24
+
+son 3 pc por switch 1 pertenecera a cada red y las direccion ip estaran repartidas de la siguiente forma: 
+switch 1
+192.168.10.1
+192.168.20.1
+192.168.30.1
+
+switch 2
+192.168.10.2
+192.168.20.2
+192.168.30.2
+
+switch 3
+192.168.10.3
+192.168.20.3
+192.168.30.3
+
+----------------------------------------------------------------------------------------------------
+inicio
+---crear 3 vlan en switch 1 la vlan 1 sera reservada para enlace troncal
+---las vlan se deben crear en los 4 switch
+----------------------------------------------------------------------------------------------------
+
+Switch>enable
+Switch#conf t
+Enter configuration commands, one per line.  End with CNTL/Z.
+Switch(config)#vlan 2
+Switch(config-vlan)#name Venta
+Switch(config-vlan)#exit
+Switch(config)#vlan 3
+Switch(config-vlan)#name Conta
+Switch(config-vlan)#exit
+Switch(config)#vlan 4
+Switch(config-vlan)#name Admin
+Switch(config-vlan)#exit
+
+--------------------------------------------------------------------------------------------------
+---asignar el puerto fasthEthernet a su vlan correspondiente
+---se hace en los 3 switches que tienen pc conectadas
+---en switch 1 la pc de direccion 10.1 tiene el puerto f0/5
+---la 20.1 tiene el puerto f0/10
+---la 30.1 tiene el puerto f0/15
+--------------------------------------------------------------------------------------------------
+
+Switch(config)#int f0/5
+Switch(config-if)#switchport access vlan 2
+Switch(config-if)#no shutdown
+Switch(config-if)#exit
+
+Switch(config)#int f0/10
+Switch(config-if)#switchport access vlan 3
+Switch(config-if)#no shutdown
+Switch(config-if)#exit
+
+Switch(config)#int f0/15
+Switch(config-if)#switchport access vlan 4
+Switch(config-if)#no shutdown
+Switch(config-if)#exit
+Switch(config)#
+
+------------------------------------------------------------------------------------------------
+---una vez ya creadas y asigandas las vlan se creara la vlan nativa para enlace troncal
+---en switch 1 la interface f0/1 es la que se conecta con el switch central entonces a esa
+---interface se la hara la configuracion
+--------------------------------------------------------------------------------------------------
+----Se le hara esto a los otros 2 switch que se conectan con el central tambien pero 
+----debe de saberse la interface que se conecta con el, pues a esa se le hara la configuracion
+----no siempre es la f0/1
+
+Switch(config)#int f0/1
+Switch(config-if)#switchport mode trunk
+Switch(config-if)#switchport trunk native vlan 1
+Switch(config-if)#exit
+
+--------------------------------------------------------------------------------------------
+
+---en el switch central se hara la siguiente configuracion
+--------------------------------------------------------------------------------------------
+Switch(config)#int range f0/1-3
+Switch(config-if-range)#switchport mode trunk
+Switch(config-if-range)#switch trunk native vlan 1
+Switch(config-if-range)#exit
+Switch(config)#
+
+----------------------------------------------------------------------------------------------
+---- se utilizo range porque es el rango de interface que conectan los otros switch con este
+---- como son seguidas 1-2-3 mejor se usa range
+------------------------------------------------------------------------------------------
+
+esto seria todo, solo repite la configuracion del switch 1 en los otros 2 switches y listo.
